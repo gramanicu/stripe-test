@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins&family=Inter&family=Lato&display=swap");
+
+body {
+    @apply bg-white;
+}
+
+html.dark {
+    body {
+        @apply bg-black;
+    }
+}

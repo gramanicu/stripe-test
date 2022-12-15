@@ -1,0 +1,13 @@
+{
+    "bracketSameLine": true,
+    "useTabs": false,
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "printWidth": 120,
+    "tabWidth": 4,
+    "bracketSpacing": true,
+    "arrowParens": "avoid",
+    "importOrder": ["^@core/(.*)$", "^@server/(.*)$", "^@ui/(.*)$", "^[./]"],
+    "importOrderSeparation": true,
+    "importOrderSortSpecifiers": true
+}
