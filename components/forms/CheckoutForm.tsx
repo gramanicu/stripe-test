@@ -4,13 +4,7 @@ import { PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import { FormEvent, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
-export default function CheckoutForm({
-    products,
-    subscriptionId,
-}: {
-    products: Product[];
-    subscriptionId: string;
-}): JSX.Element {
+export default function CheckoutForm({ products }: { products: Product[]; subscriptionId: string }): JSX.Element {
     const stripe = useStripe();
     const elements = useElements();
     const { state, dispatch } = useGlobalContext();
@@ -45,16 +39,6 @@ export default function CheckoutForm({
     async function handleCheckoutFormSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
-        const res = await fetch('/api/shop/update_subscriptions', {
-            method: 'POST',
-            body: JSON.stringify({
-                subscriptionId: subscriptionId,
-                cart: state.cart,
-            }),
-        });
-
-        if (res.status !== 200) return;
-
         if (!stripe || !elements) {
             return;
         }
@@ -74,7 +58,7 @@ export default function CheckoutForm({
     return (
         <>
             <form className="flex flex-col gap-4" onSubmit={e => handleCheckoutFormSubmit(e)}>
-                <PaymentElement />
+                <PaymentElement options={{ layout: 'accordion' }} />
                 <div className="flex flex-col gap-2 border border-gray-500 p-2 rounded-lg">
                     <h3 className="text-xl font-medium">Cart</h3>
                     {plugins.map(plugin => {
