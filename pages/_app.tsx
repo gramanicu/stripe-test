@@ -1,4 +1,5 @@
 import { GlobalProvider } from '@contexts/global.context';
+import '@stripe/stripe-js';
 import '@styles/globals.scss';
 import { NextPage } from 'next';
 import { appWithTranslation } from 'next-i18next';

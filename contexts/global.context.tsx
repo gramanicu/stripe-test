@@ -1,3 +1,4 @@
+import { Product } from '@lib/types';
 import { ReactNode, createContext, useContext, useReducer } from 'react';
 
 export type Dispatch = React.Dispatch<Action>;
@@ -16,23 +17,31 @@ type ActionMap<M extends { [index: string]: unknown }> = {
 };
 
 const defaultState = {
-    simpleState: '',
+    email: '',
+    cart: [] as Product[],
 };
 
 export enum ActionTypes {
-    setSimpleState,
+    setEmail,
+    setCart,
 }
 
 export type ActionPayload = {
-    [ActionTypes.setSimpleState]: {
-        simpleState: string;
+    [ActionTypes.setEmail]: {
+        email: string;
+    };
+    [ActionTypes.setCart]: {
+        cart: Product[];
     };
 };
 
 function reducer(state: State, action: Action) {
     switch (action.type) {
-        case ActionTypes.setSimpleState: {
-            return { ...state, simpleState: action.payload.simpleState };
+        case ActionTypes.setEmail: {
+            return { ...state, email: action.payload.email };
+        }
+        case ActionTypes.setCart: {
+            return { ...state, cart: action.payload.cart };
         }
         default: {
             return state;

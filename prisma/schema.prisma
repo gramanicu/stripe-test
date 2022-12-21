@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stripeCustomerId String
+  permissions      Privilege[]
+  email            String
+
+  @@map(name: "users")
+}
+
+// Privileges are permissions assigned to users
+model Privilege {
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId               String
+  permissionName       String @id @map("permissionId")
+  metadata             Json
+  stripeSubscriptionID String
+
+  permission Permission @relation(fields: [permissionName], references: [name])
+  user       User       @relation(fields: [userId], references: [id])
+
+  @@map(name: "privileges")
+}
+
+model Permission {
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name      String      @id @unique
+  privilege Privilege[]
+
+  plugin   Plugin? @relation(fields: [pluginId], references: [id])
+  pluginId String?
+
+  @@map(name: "permissions")
+}
+
+model Plugin {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name            String       @unique
+  description     String
+  permissions     Permission[]
+  stripeProductId String
+
+  @@map(name: "plugins")
+}
