@@ -45,6 +45,7 @@ model Plugin {
   name            String @unique
   description     String
   stripeProductId String
+  price           Float
 
   subscriptions         Subscription[]         @relation("subscription_plugin")
   permissions           Permission[]           @relation("plugin_permission")

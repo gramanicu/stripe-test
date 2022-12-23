@@ -29,7 +29,9 @@ const Component = React.forwardRef(({ children, isOpen, onClose }: ModalProps, r
                                 duration: 0.25,
                             },
                         }}>
-                        <Dialog.Backdrop className={`fixed inset-0 bg-white/25 dark:bg-[#000000]/25 `} />
+                        <Dialog.Backdrop
+                            className={`fixed inset-0 bg-white/25 dark:bg-[#000000]/50 backdrop-blur-sm `}
+                        />
                     </motion.div>
 
                     <motion.div
@@ -55,7 +57,7 @@ const Component = React.forwardRef(({ children, isOpen, onClose }: ModalProps, r
                         }}
                         className="fixed inset-0 overflow-y-auto">
                         <div className="flex min-h-full items-center justify-center p-4 text-center">
-                            <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl p-6 text-left align-middle shadow-xl transition-all border border-white text-black dark:text-white bg-transparent">
+                            <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl p-6 text-left align-middle shadow-xl transition-all border border-white text-black dark:text-white bg-white dark:bg-black">
                                 {children}
                             </Dialog.Panel>
                         </div>

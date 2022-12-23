@@ -43,6 +43,7 @@ async function create_plugin(name: string, description: string, price: number, p
                 }),
             },
             stripeProductId: product.id,
+            price: price / 100,
         },
     });
 
@@ -76,21 +77,21 @@ async function main() {
     const base_plugin = await create_plugin(
         'Base Subscription',
         'The base subscription for the application',
-        15000,
+        1500,
         base_permissions
     );
 
     const gold_product = await create_plugin(
         'Add pokémon page',
         'You can add a pokémon page to the application',
-        10000,
+        1000,
         gold_permissions
     );
 
     await create_plugin(
         'View pokémon count',
         'You can view the application`s pokémon count',
-        5000,
+        500,
         view_count_permissions
     );
 

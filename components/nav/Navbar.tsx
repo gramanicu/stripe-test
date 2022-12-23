@@ -1,5 +1,4 @@
 import AuthButton from '@components/auth/AuthButton';
-import CartDropdown from '@components/data/CartDropdown';
 import Link from 'next/link';
 
 export default function Navbar() {
@@ -19,7 +18,6 @@ export default function Navbar() {
                 </Link>
             </div>
             <div className="flex flex-row gap-2 items-center">
-                <CartDropdown />
                 <AuthButton />
             </div>
         </div>

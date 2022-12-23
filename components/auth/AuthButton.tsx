@@ -44,7 +44,7 @@ export default function AuthButton() {
 
                     setIsModalOpen(true);
                 }}>
-                {!session.email && <span>Sign in</span>}
+                {!session.email ? <span>Sign in</span> : <span>{session.email}</span>}
                 {session.email ? (
                     <ArrowRightOnRectangleIcon className="w-4 h-4" />
                 ) : (
