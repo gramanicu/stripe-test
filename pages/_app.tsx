@@ -1,4 +1,3 @@
-import { GlobalProvider } from '@contexts/global.context';
 import '@stripe/stripe-js';
 import '@styles/globals.scss';
 import { NextPage } from 'next';
@@ -32,11 +31,7 @@ function App({ Component, pageProps: { ...pageProps } }: AppPropsWithLayout) {
 
     const getLayout = Component.getLayout ?? (page => page);
 
-    return (
-        <GlobalProvider>
-            <ThemeProvider attribute="class">{getLayout(<Component {...pageProps} />)}</ThemeProvider>
-        </GlobalProvider>
-    );
+    return <ThemeProvider attribute="class">{getLayout(<Component {...pageProps} />)}</ThemeProvider>;
 }
 
 export default appWithTranslation(App);

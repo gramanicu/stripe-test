@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             };
         }),
         payment_behavior: 'default_incomplete',
-        payment_settings: { save_default_payment_method: 'on_subscription', payment_method_types: ['card'] },
+        payment_settings: { save_default_payment_method: 'on_subscription', payment_method_types: ['card', 'link'] },
         expand: ['latest_invoice.payment_intent'],
         currency: 'USD',
     });

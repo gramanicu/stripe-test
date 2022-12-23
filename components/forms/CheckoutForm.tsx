@@ -1,6 +1,6 @@
 import { ActionTypes, useGlobalContext } from '@contexts/global.context';
 import { Product } from '@lib/types';
-import { PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
+import { LinkAuthenticationElement, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { FormEvent, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
@@ -58,7 +58,32 @@ export default function CheckoutForm({ products }: { products: Product[]; subscr
     return (
         <>
             <form className="flex flex-col gap-4" onSubmit={e => handleCheckoutFormSubmit(e)}>
-                <PaymentElement options={{ layout: 'accordion' }} />
+                <LinkAuthenticationElement
+                    onChange={event => {
+                        dispatch({
+                            type: ActionTypes.setEmail,
+                            payload: {
+                                email: event.value.email,
+                            },
+                        });
+                    }}
+                    options={{
+                        defaultValues: {
+                            email: state.email,
+                        },
+                    }}
+                />
+                <PaymentElement
+                    options={{
+                        layout: 'accordion',
+                        defaultValues: {
+                            billingDetails: {
+                                name: 'John Doe',
+                                phone: '888-888-8888',
+                            },
+                        },
+                    }}
+                />
                 <div className="flex flex-col gap-2 border border-gray-500 p-2 rounded-lg">
                     <h3 className="text-xl font-medium">Cart</h3>
                     {plugins.map(plugin => {
