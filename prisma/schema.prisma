@@ -16,38 +16,22 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  stripeCustomerId String?
-  privileges       Privilege[]
-  email            String      @unique
-  pokemon          Pokemon[]   @relation("owned_pokemon")
+  stripeCustomerId String?        @unique
+  email            String         @unique
+  pokemon          Pokemon[]      @relation("owned_pokemon")
+  subscriptions    Subscription[]
 
   @@map(name: "users")
 }
 
 // Privileges are permissions assigned to users
-model Privilege {
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  userId               String
-  permissionName       String @id @map("permissionId")
-  metadata             Json
-  stripeSubscriptionID String
-
-  permission Permission @relation(fields: [permissionName], references: [name])
-  user       User       @relation(fields: [userId], references: [id])
-
-  @@map(name: "privileges")
-}
-
 model Permission {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  name      String      @id @unique
-  privilege Privilege[]
+  name String @id @unique
 
-  plugin   Plugin? @relation(fields: [pluginId], references: [id])
+  plugins  Plugin[] @relation("plugin_permission")
   pluginId String?
 
   @@map(name: "permissions")
@@ -58,12 +42,45 @@ model Plugin {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  name            String       @unique
+  name            String @unique
   description     String
-  permissions     Permission[]
   stripeProductId String
 
+  subscriptions         Subscription[]         @relation("subscription_plugin")
+  permissions           Permission[]           @relation("plugin_permission")
+  subscriptionTemplates SubscriptionTemplate[] @relation("template_plugin")
+
   @@map(name: "plugins")
+}
+
+model SubscriptionTemplate {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name        String
+  description String
+  price       Float
+
+  plugins       Plugin[]       @relation("template_plugin")
+  subscriptions Subscription[]
+
+  @@map(name: "subscription_templates")
+}
+
+model Subscription {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  plugins                Plugin[]             @relation("subscription_plugin")
+  stripeSubscriptionId   String               @unique
+  subscriptionTemplate   SubscriptionTemplate @relation(fields: [subscriptionTemplateId], references: [id])
+  subscriptionTemplateId String
+  user                   User                 @relation(fields: [userId], references: [id])
+  userId                 String
+
+  @@map(name: "subscriptions")
 }
 
 model Pokemon {

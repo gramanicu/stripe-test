@@ -1,4 +1,4 @@
-import AuthButton from '@components/auth/AuthButton';
+import Navbar from '@components/nav/Navbar';
 import Head from 'next/head';
 import toast, { ToastBar, Toaster } from 'react-hot-toast';
 
@@ -9,7 +9,6 @@ type Props = {
 export function DefaultLayout({ children }: Props) {
     return (
         <div className="min-h-screen antialiased flex flex-col">
-            {/* Head/Meta tags */}
             <Head>
                 <meta name="viewport" content="initial-scale=1.0, width=device-width" />
                 <meta name="author" content="webitfactory" />
@@ -29,12 +28,7 @@ export function DefaultLayout({ children }: Props) {
                 )}
             </Toaster>
             <div className="flex flex-col ">
-                <div className="flex flex-row justify-between p-2 shadow-xl">
-                    <span className="text-xl font-medium">
-                        <span className="text-green-500">Stripe</span>Test
-                    </span>
-                    <AuthButton />
-                </div>
+                <Navbar />
                 <div>{children}</div>
             </div>
         </div>

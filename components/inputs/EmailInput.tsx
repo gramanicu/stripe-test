@@ -34,7 +34,7 @@ export default function EmailInput({
     return (
         <div>
             <input
-                className={`flex flex-col px-2 py-1 bg-transparent justify-start items-center rounded-lg bg-transparent border ring-0 focus:ring-0 ${
+                className={`flex flex-col px-2 py-1 justify-start items-center rounded-lg bg-transparent border ring-0 focus:ring-0 ${
                     error === ''
                         ? 'border-black dark:border-white focus:dark:border-blue-500'
                         : 'border-red-500 dark:border-red-500 focus:dark:border-red-500'

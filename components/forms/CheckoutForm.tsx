@@ -1,40 +1,11 @@
-import { ActionTypes, useGlobalContext } from '@contexts/global.context';
 import { Product } from '@lib/types';
 import { LinkAuthenticationElement, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent } from 'react';
 import toast from 'react-hot-toast';
 
 export default function CheckoutForm({ products }: { products: Product[]; subscriptionId: string }): JSX.Element {
     const stripe = useStripe();
     const elements = useElements();
-    const { state, dispatch } = useGlobalContext();
-
-    const [plugins, setPlugins] = useState(
-        products.map(product => {
-            return {
-                ...product,
-                checked:
-                    state.cart.findIndex(s_product => {
-                        return s_product.id === product.id;
-                    }) !== -1,
-            };
-        })
-    );
-
-    useEffect(() => {
-        setPlugins(
-            products.map(product => {
-                return {
-                    ...product,
-                    checked:
-                        state.cart.findIndex(s_product => {
-                            return s_product.id === product.id;
-                        }) !== -1,
-                };
-            })
-        );
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [JSON.stringify(state.cart)]);
 
     async function handleCheckoutFormSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -60,17 +31,7 @@ export default function CheckoutForm({ products }: { products: Product[]; subscr
             <form className="flex flex-col gap-4" onSubmit={e => handleCheckoutFormSubmit(e)}>
                 <LinkAuthenticationElement
                     onChange={event => {
-                        dispatch({
-                            type: ActionTypes.setEmail,
-                            payload: {
-                                email: event.value.email,
-                            },
-                        });
-                    }}
-                    options={{
-                        defaultValues: {
-                            email: state.email,
-                        },
+                        console.log(event);
                     }}
                 />
                 <PaymentElement
@@ -84,46 +45,6 @@ export default function CheckoutForm({ products }: { products: Product[]; subscr
                         },
                     }}
                 />
-                <div className="flex flex-col gap-2 border border-gray-500 p-2 rounded-lg">
-                    <h3 className="text-xl font-medium">Cart</h3>
-                    {plugins.map(plugin => {
-                        return (
-                            <div className="flex items-center mr-4" key={plugin.id}>
-                                <input
-                                    id={`${plugin.id}-checkbox`}
-                                    type="checkbox"
-                                    onChange={() => {
-                                        const arr = state.cart;
-                                        const index = state.cart.findIndex(c_plugin => {
-                                            return c_plugin.id === plugin.id;
-                                        });
-
-                                        if (index !== -1) {
-                                            arr.splice(index, 1);
-                                        } else {
-                                            arr.push(plugin);
-                                        }
-
-                                        dispatch({
-                                            type: ActionTypes.setCart,
-                                            payload: {
-                                                cart: arr,
-                                            },
-                                        });
-                                    }}
-                                    value={plugin.id}
-                                    checked={plugin.checked}
-                                    className="w-4 h-4 text-red-600 bg-gray-100 rounded border-gray-300 focus:ring-red-500 dark:focus:ring-red-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                                />
-                                <label
-                                    htmlFor={`${plugin.id}-checkbox`}
-                                    className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
-                                    {plugin.name}
-                                </label>
-                            </div>
-                        );
-                    })}
-                </div>
 
                 <button>Submit</button>
             </form>

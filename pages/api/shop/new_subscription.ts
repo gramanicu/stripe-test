@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const subscription = await stripe.subscriptions.create({
-        customer: user.stripeCustomerId,
+        customer: user.stripeCustomerId ?? (await stripe.customers.create({ email })).id,
         items: cart.map(product => {
             return {
                 price: product.price.id,

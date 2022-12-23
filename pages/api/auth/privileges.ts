@@ -1,4 +1,5 @@
 import { is_logged_in } from '@lib/auth';
+import { compute_permissions } from '@lib/auth/permissions';
 import { prisma } from '@lib/db';
 import { withSessionRoute } from '@lib/session';
 import { NextApiRequest, NextApiResponse } from 'next';
@@ -19,7 +20,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             id: userId,
         },
         include: {
-            privileges: true,
+            subscriptions: true,
         },
     });
 
@@ -27,7 +28,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(401).json({ message: 'User not found' });
     }
 
-    return res.status(200).json({ privileges: user.privileges, message: "User's privileges retrieved" });
+    const privileges = await compute_permissions(user.subscriptions);
+
+    return res.status(200).json({ privileges, message: "User's privileges retrieved" });
 };
 
 export default withSessionRoute(handler);

@@ -33,9 +33,9 @@ export default function AuthButton() {
     };
 
     return (
-        <div>
+        <div className="flex flex-row justify-center items-center gap-2 px-2 py-1">
             <button
-                className="flex flex-row justify-center items-center gap-2 rounded-lg px-2 py-1"
+                className="flex flex-row justify-center items-center gap-2 rounded-lg"
                 onClick={() => {
                     if (session.email) {
                         handleSignout();
@@ -44,7 +44,7 @@ export default function AuthButton() {
 
                     setIsModalOpen(true);
                 }}>
-                <span>{session.email ? session.email : 'Sign in'}</span>
+                {!session.email && <span>Sign in</span>}
                 {session.email ? (
                     <ArrowRightOnRectangleIcon className="w-4 h-4" />
                 ) : (

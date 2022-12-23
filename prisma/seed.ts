@@ -18,6 +18,37 @@ const stripe = new Stripe(STRIPE_SECRET_KEY, {
     apiVersion: '2022-11-15',
 });
 
+async function create_plugin(name: string, description: string, price: number, permissions: PermissionTypes[]) {
+    const product = await stripe.products.create({
+        name: name,
+
+        description: description,
+        default_price_data: {
+            currency: 'USD',
+            recurring: {
+                interval: 'month',
+                interval_count: 1,
+            },
+            unit_amount: price,
+        },
+    });
+
+    const plugin = await prisma.plugin.create({
+        data: {
+            name: product.name,
+            description: product.description || '',
+            permissions: {
+                connect: permissions.map(permission => {
+                    return { name: permission };
+                }),
+            },
+            stripeProductId: product.id,
+        },
+    });
+
+    return plugin;
+}
+
 async function main() {
     // Check defined permissions and update the database
     await prisma.$transaction([
@@ -39,81 +70,58 @@ async function main() {
         'pokémon:owned:remove',
         'pokémon:list',
     ];
+    const gold_permissions: PermissionTypes[] = ['pokémon:list', 'pokémon:add-page'];
+    const view_count_permissions: PermissionTypes[] = ['pokémon:list', 'pokémon:view_count'];
 
-    const base_product = await stripe.products.create({
-        name: 'Base Subscription',
-        description: 'The base subscription for the application',
-        default_price_data: {
-            currency: 'USD',
-            recurring: {
-                interval: 'month',
-                interval_count: 1,
-            },
-            unit_amount: 1000,
-        },
-    });
-    await prisma.plugin.create({
-        data: {
-            name: base_product.name,
-            description: base_product.description || '',
-            stripeProductId: base_product.id,
-            permissions: {
-                connect: base_permissions.map(permission => {
-                    return { name: permission };
-                }),
-            },
-        },
-    });
+    const base_plugin = await create_plugin(
+        'Base Subscription',
+        'The base subscription for the application',
+        15000,
+        base_permissions
+    );
 
-    const gold_permissions: PermissionTypes[] = [...base_permissions, 'pokémon:add-page'];
-    const gold_product = await stripe.products.create({
-        name: 'Gold Subscription',
-        description: 'Your limits are higher and you can request the application to add more pokémon',
-        default_price_data: {
-            currency: 'USD',
-            recurring: {
-                interval: 'month',
-                interval_count: 1,
-            },
-            unit_amount: 3000,
-        },
-    });
-    await prisma.plugin.create({
+    const gold_product = await create_plugin(
+        'Add pokémon page',
+        'You can add a pokémon page to the application',
+        10000,
+        gold_permissions
+    );
+
+    await create_plugin(
+        'View pokémon count',
+        'You can view the application`s pokémon count',
+        5000,
+        view_count_permissions
+    );
+
+    await prisma.subscriptionTemplate.create({
         data: {
-            name: gold_product.name,
-            description: gold_product.description || '',
-            stripeProductId: gold_product.id,
-            permissions: {
-                connect: gold_permissions.map(permission => {
-                    return { name: permission };
-                }),
+            name: 'Base Tier',
+            description: 'The base tier for the application',
+            plugins: {
+                connect: {
+                    id: base_plugin.id,
+                },
             },
+            price: 10.0,
         },
     });
 
-    const simple_plugin_permission: PermissionTypes[] = ['pokémon:view_count'];
-    const simple_plugin_product = await stripe.products.create({
-        name: 'View pokémon count',
-        description: 'You can view the application`s pokémon count',
-        default_price_data: {
-            currency: 'USD',
-            recurring: {
-                interval: 'month',
-                interval_count: 1,
-            },
-            unit_amount: 100,
-        },
-    });
-    await prisma.plugin.create({
+    await prisma.subscriptionTemplate.create({
         data: {
-            name: simple_plugin_product.name,
-            description: simple_plugin_product.description || '',
-            stripeProductId: simple_plugin_product.id,
-            permissions: {
-                connect: simple_plugin_permission.map(permission => {
-                    return { name: permission };
-                }),
+            name: 'Gold Tier',
+            description: 'The gold tier for the application',
+            plugins: {
+                connect: [
+                    {
+                        id: base_plugin.id,
+                    },
+                    {
+                        id: gold_product.id,
+                    },
+                ],
             },
+            price: 17.5,
         },
     });
 }
