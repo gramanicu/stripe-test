@@ -1,3 +1,4 @@
+import { DOMAIN } from '@lib/config';
 import { LinkAuthenticationElement, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { FormEvent } from 'react';
 import toast from 'react-hot-toast';
@@ -21,7 +22,7 @@ export default function CheckoutForm({ email }: CheckoutFormProps): JSX.Element 
             elements: elements,
             redirect: 'always',
             confirmParams: {
-                return_url: 'http://localhost:3000/',
+                return_url: `${DOMAIN}`,
             },
         });
 
