@@ -50,6 +50,37 @@ async function create_plugin(name: string, description: string, price: number, p
     return plugin;
 }
 
+async function create_subscription(name: string, description: string, price: number, plugins: string[]) {
+    const product = await stripe.products.create({
+        name: name,
+        description: description,
+        default_price_data: {
+            currency: 'USD',
+            recurring: {
+                interval: 'month',
+                interval_count: 1,
+            },
+            unit_amount: price,
+        },
+    });
+
+    const plugin = await prisma.subscriptionTemplate.create({
+        data: {
+            name: product.name,
+            description: product.description || '',
+            plugins: {
+                connect: plugins.map(plugin => {
+                    return { id: plugin };
+                }),
+            },
+            stripeProductId: product.id,
+            price: price / 100,
+        },
+    });
+
+    return plugin;
+}
+
 async function main() {
     // Check defined permissions and update the database
     await prisma.$transaction([
@@ -95,36 +126,11 @@ async function main() {
         view_count_permissions
     );
 
-    await prisma.subscriptionTemplate.create({
-        data: {
-            name: 'Base Tier',
-            description: 'The base tier for the application',
-            plugins: {
-                connect: {
-                    id: base_plugin.id,
-                },
-            },
-            price: 10.0,
-        },
-    });
-
-    await prisma.subscriptionTemplate.create({
-        data: {
-            name: 'Gold Tier',
-            description: 'The gold tier for the application',
-            plugins: {
-                connect: [
-                    {
-                        id: base_plugin.id,
-                    },
-                    {
-                        id: gold_product.id,
-                    },
-                ],
-            },
-            price: 17.5,
-        },
-    });
+    await create_subscription('Base Tier', 'The base tier for the application', 1000, [base_plugin.id]);
+    await create_subscription('Gold Tier', 'The gold tier for the application', 1750, [
+        base_plugin.id,
+        gold_product.id,
+    ]);
 }
 
 main()

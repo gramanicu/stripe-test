@@ -1,9 +1,12 @@
-import { Product } from '@lib/types';
 import { LinkAuthenticationElement, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { FormEvent } from 'react';
 import toast from 'react-hot-toast';
 
-export default function CheckoutForm({ products }: { products: Product[]; subscriptionId: string }): JSX.Element {
+export type CheckoutFormProps = {
+    email: string;
+};
+
+export default function CheckoutForm({ email }: CheckoutFormProps): JSX.Element {
     const stripe = useStripe();
     const elements = useElements();
 
@@ -29,17 +32,14 @@ export default function CheckoutForm({ products }: { products: Product[]; subscr
     return (
         <>
             <form className="flex flex-col gap-4" onSubmit={e => handleCheckoutFormSubmit(e)}>
-                <LinkAuthenticationElement
-                    onChange={event => {
-                        console.log(event);
-                    }}
-                />
+                <LinkAuthenticationElement />
                 <PaymentElement
                     options={{
                         layout: 'accordion',
                         defaultValues: {
                             billingDetails: {
                                 name: 'John Doe',
+                                email,
                                 phone: '888-888-8888',
                             },
                         },

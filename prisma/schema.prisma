@@ -44,7 +44,7 @@ model Plugin {
 
   name            String @unique
   description     String
-  stripeProductId String
+  stripeProductId String @unique
   price           Float
 
   subscriptions         Subscription[]         @relation("subscription_plugin")
@@ -59,9 +59,10 @@ model SubscriptionTemplate {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  name        String
-  description String
-  price       Float
+  name            String
+  description     String
+  price           Float
+  stripeProductId String @unique
 
   plugins       Plugin[]       @relation("template_plugin")
   subscriptions Subscription[]
@@ -74,12 +75,14 @@ model Subscription {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  plugins                Plugin[]             @relation("subscription_plugin")
-  stripeSubscriptionId   String               @unique
-  subscriptionTemplate   SubscriptionTemplate @relation(fields: [subscriptionTemplateId], references: [id])
-  subscriptionTemplateId String
-  user                   User                 @relation(fields: [userId], references: [id])
-  userId                 String
+  plugins              Plugin[] @relation("subscription_plugin")
+  stripeSubscriptionId String   @unique
+
+  subscriptionTemplate   SubscriptionTemplate? @relation(fields: [subscriptionTemplateId], references: [id])
+  subscriptionTemplateId String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
   @@map(name: "subscriptions")
 }

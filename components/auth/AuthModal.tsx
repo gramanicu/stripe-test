@@ -10,7 +10,7 @@ import { useSessionStore } from 'stores/session.store';
 
 export type ModalProps = {
     isOpen: boolean;
-    onClose: () => void;
+    onClose: (isSignedIn: boolean) => void;
 };
 
 export default function AuthModal({ isOpen, onClose }: ModalProps) {
@@ -38,7 +38,7 @@ export default function AuthModal({ isOpen, onClose }: ModalProps) {
 
             toast.success(signup ? 'Signed up' : 'Signed in');
 
-            onClose();
+            onClose(true);
         }
 
         if (res.status === 401) {
@@ -83,7 +83,7 @@ export default function AuthModal({ isOpen, onClose }: ModalProps) {
     };
 
     return (
-        <SimpleModal isOpen={isOpen} onClose={onClose}>
+        <SimpleModal isOpen={isOpen} onClose={() => onClose(false)}>
             <Dialog.Title as="h3" className="text-xl font-bold leading-6 ">
                 {signup ? 'Sign up for an account' : 'Sign into your account'}
             </Dialog.Title>

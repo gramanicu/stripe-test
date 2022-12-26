@@ -27,9 +27,9 @@ export function DefaultLayout({ children }: Props) {
                     </ToastBar>
                 )}
             </Toaster>
-            <div className="flex flex-col ">
+            <div className="flex flex-col">
                 <Navbar />
-                <div>{children}</div>
+                <div className="max-w-6xl mx-auto">{children}</div>
             </div>
         </div>
     );
