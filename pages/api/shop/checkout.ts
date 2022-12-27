@@ -36,29 +36,33 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
                 in: cart.filter(item => item.type === 'BUNDLE').map(item => item.itemId),
             },
         },
+        include: {
+            plugins: true,
+        },
     });
 
-    const connected_products = plugins
-        .map(plugin => {
-            return {
-                id: plugin.stripeProductId,
-            };
-        })
-        .concat(
-            bundles.map(bundle => {
+    const products = await Promise.all(
+        plugins
+            .map(plugin => {
                 return {
-                    id: bundle.stripeProductId,
+                    id: plugin.stripeProductId,
                 };
             })
-        );
-
-    const products = await Promise.all(
-        connected_products.map(async product => {
-            return await stripe.products.retrieve(product.id, {
-                expand: ['default_price'],
-            });
-        })
+            .concat(
+                bundles.map(bundle => {
+                    return {
+                        id: bundle.stripeProductId,
+                    };
+                })
+            )
+            .map(async product => {
+                return await stripe.products.retrieve(product.id, {
+                    expand: ['default_price'],
+                });
+            })
     );
+
+    const all_plugins = plugins.concat(bundles.flatMap(bundle => bundle.plugins));
 
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
@@ -73,7 +77,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         }),
         metadata: {
             userId: user.id,
-            plugins: JSON.stringify(connected_products.map(product => product.id)),
+            plugins: JSON.stringify(all_plugins.map(plugin => plugin.id)),
             subscriptionTemplateIds: JSON.stringify(bundles.map(bundle => bundle.id)),
         },
         payment_behavior: 'default_incomplete',
