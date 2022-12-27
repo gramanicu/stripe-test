@@ -30,7 +30,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     const privileges = await compute_permissions(user.subscriptions);
 
-    return res.status(200).json({ privileges, message: "User's privileges retrieved" });
+    return res
+        .status(200)
+        .json({ privileges: privileges.map(privilege => privilege.name), message: "User's privileges retrieved" });
 };
 
 export default withSessionRoute(handler);

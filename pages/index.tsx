@@ -90,7 +90,7 @@ Home.getLayout = function getLayout(page: ReactElement) {
     return <DefaultLayout>{page}</DefaultLayout>;
 };
 
-export const getServerSideProps = withSessionSsr(async ({ query, req, res }) => {
+export const getServerSideProps = withSessionSsr(async ({ req, res }) => {
     res.setHeader('Cache-Control', 'public, s-maxage=10, stale-while-revalidate=59');
 
     const tiers = await prisma.subscriptionTemplate.findMany({

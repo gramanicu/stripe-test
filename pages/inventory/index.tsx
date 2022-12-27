@@ -10,7 +10,15 @@ export default function Home() {
                 <meta name="description" content="An app used to learn stripe usage" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-            <div className="flex flex-col p-4 gap-4"></div>
+            <div className="flex flex-col p-4 gap-4">
+                <button
+                    onClick={() => {
+                        fetch('/api/auth/authenticated');
+                        fetch('/api/auth/privileges');
+                    }}>
+                    Test
+                </button>
+            </div>
         </>
     );
 }
