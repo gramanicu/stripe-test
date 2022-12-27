@@ -29,7 +29,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             case 'customer.created':
                 {
                     const customer = event.data.object as Stripe.Customer;
-                    console.log(`Customer created: ${customer.email}`);
 
                     const user = await prisma.user.upsert({
                         where: {
