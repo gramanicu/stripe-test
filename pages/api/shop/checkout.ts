@@ -38,25 +38,26 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
     });
 
-    const products = await Promise.all(
-        plugins
-            .map(plugin => {
+    const connected_products = plugins
+        .map(plugin => {
+            return {
+                id: plugin.stripeProductId,
+            };
+        })
+        .concat(
+            bundles.map(bundle => {
                 return {
-                    id: plugin.stripeProductId,
+                    id: bundle.stripeProductId,
                 };
             })
-            .concat(
-                bundles.map(bundle => {
-                    return {
-                        id: bundle.stripeProductId,
-                    };
-                })
-            )
-            .map(async product => {
-                return await stripe.products.retrieve(product.id, {
-                    expand: ['default_price'],
-                });
-            })
+        );
+
+    const products = await Promise.all(
+        connected_products.map(async product => {
+            return await stripe.products.retrieve(product.id, {
+                expand: ['default_price'],
+            });
+        })
     );
 
     if (!user) {
@@ -72,7 +73,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         }),
         metadata: {
             userId: user.id,
-            plugins: JSON.stringify(plugins),
+            plugins: JSON.stringify(connected_products.map(product => product.id)),
             subscriptionTemplateIds: JSON.stringify(bundles.map(bundle => bundle.id)),
         },
         payment_behavior: 'default_incomplete',

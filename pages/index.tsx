@@ -2,7 +2,8 @@ import AuthModal from '@components/auth/AuthModal';
 import MonthlyPricingCard from '@components/cards/MonthlyPricingCard';
 import { DefaultLayout } from '@components/layouts/default.layout';
 import { prisma } from '@lib/db';
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
+import { withSessionSsr } from '@lib/session';
+import { InferGetServerSidePropsType } from 'next';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { Fragment, ReactElement, useState } from 'react';
@@ -35,7 +36,7 @@ export default function Home({ tiers, plugins }: InferGetServerSidePropsType<typ
                         return (
                             <Fragment key={index}>
                                 <MonthlyPricingCard
-                                    title={tier.name}
+                                    title={`${tier.name}${tier.isOwned ? ' (Owned)' : ''}`}
                                     description={tier.description}
                                     price={`$${tier.price}`}
                                     features={tier.plugins.map(plugin => {
@@ -70,7 +71,10 @@ export default function Home({ tiers, plugins }: InferGetServerSidePropsType<typ
                     {plugins.map((plugin, index) => {
                         return (
                             <div className="flex flex-row gap-2 items-baseline" key={index}>
-                                <h3 className="text-lg font-light">{plugin.name}</h3>
+                                <h3 className="text-lg font-light">
+                                    {plugin.name}
+                                    {plugin.isOwned ? ' (Owned)' : ''}
+                                </h3>
                                 <p className="text-gray-500">${plugin.price}</p>
                                 {plugin.description && <span>{` - ${plugin.description}`}</span>}
                             </div>
@@ -86,7 +90,7 @@ Home.getLayout = function getLayout(page: ReactElement) {
     return <DefaultLayout>{page}</DefaultLayout>;
 };
 
-export async function getServerSideProps({ res }: GetServerSidePropsContext) {
+export const getServerSideProps = withSessionSsr(async ({ query, req, res }) => {
     res.setHeader('Cache-Control', 'public, s-maxage=10, stale-while-revalidate=59');
 
     const tiers = await prisma.subscriptionTemplate.findMany({
@@ -114,10 +118,43 @@ export async function getServerSideProps({ res }: GetServerSidePropsContext) {
         },
     });
 
+    let ownedTiers: string[] = [];
+    let ownedPlugins: string[] = [];
+    if (req.session.userId) {
+        const user = await prisma.user.findUnique({
+            where: {
+                id: req.session.userId,
+            },
+            include: {
+                subscriptions: {
+                    include: {
+                        plugins: true,
+                    },
+                },
+            },
+        });
+
+        if (user) {
+            ownedTiers = user.subscriptions.map(tier => tier.subscriptionTemplateId || '');
+            ownedPlugins = user.subscriptions.flatMap(tier => tier.plugins.map(plugin => plugin.id));
+            // console.log(user);
+        }
+    }
+
     return {
         props: {
-            tiers: tiers,
-            plugins: plugins,
+            tiers: tiers.map(tier => {
+                return {
+                    ...tier,
+                    isOwned: ownedTiers.some(owned => owned === tier.id),
+                };
+            }),
+            plugins: plugins.map(plugin => {
+                return {
+                    ...plugin,
+                    isOwned: ownedPlugins.some(owned => owned === plugin.id),
+                };
+            }),
         },
     };
-}
+});

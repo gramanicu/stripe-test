@@ -17,7 +17,7 @@ async function create(
                     },
                 },
                 plugins: {
-                    connect: pluginIds.map(pluginId => ({ id: pluginId })),
+                    connect: pluginIds.map(id => ({ id })),
                 },
                 stripeSubscriptionId,
                 subscriptionTemplate: subscriptionTemplateIds && {
