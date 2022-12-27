@@ -1,4 +1,5 @@
 import { STRIPE_WEBHOOK_SECRET } from '@lib/config';
+import { prisma } from '@lib/db';
 import { SubscriptionService } from '@lib/services/subscription.service';
 import { stripe } from '@lib/stripe';
 import { buffer } from 'micro';
@@ -29,6 +30,21 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 {
                     const customer = event.data.object as Stripe.Customer;
                     console.log(`Customer created: ${customer.email}`);
+
+                    const user = await prisma.user.upsert({
+                        where: {
+                            email: customer.email || '',
+                        },
+                        update: {
+                            stripeCustomerId: customer.id,
+                        },
+                        create: {
+                            email: customer.email || '',
+                            stripeCustomerId: customer.id,
+                        },
+                    });
+
+                    console.log(`Added customer profile for: ${user.email}`);
                 }
                 break;
             case 'customer.subscription.created':
