@@ -51,18 +51,28 @@ async function create_plugin(name: string, description: string, price: number, p
 }
 
 async function create_subscription(name: string, description: string, price: number, plugins: string[]) {
-    const product = await stripe.products.create({
-        name: name,
-        description: description,
-        default_price_data: {
-            currency: 'USD',
-            recurring: {
-                interval: 'month',
-                interval_count: 1,
-            },
-            unit_amount: price,
-        },
+    const exists = await stripe.products.search({
+        query: `name:"${name}"`,
     });
+
+    let product: Stripe.Product;
+
+    if (exists.data.length < 0) {
+        product = await stripe.products.create({
+            name: name,
+            description: description,
+            default_price_data: {
+                currency: 'USD',
+                recurring: {
+                    interval: 'month',
+                    interval_count: 1,
+                },
+                unit_amount: price,
+            },
+        });
+    } else {
+        product = exists.data[0];
+    }
 
     const plugin = await prisma.subscriptionTemplate.create({
         data: {
