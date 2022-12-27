@@ -57,7 +57,7 @@ async function create_subscription(name: string, description: string, price: num
 
     let product: Stripe.Product;
 
-    if (exists.data.length < 0) {
+    if (exists.data.length === 0) {
         product = await stripe.products.create({
             name: name,
             description: description,
