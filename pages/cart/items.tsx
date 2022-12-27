@@ -214,6 +214,7 @@ export const getServerSideProps = withSessionSsr(async ({ req, res }) => {
             },
         };
     }
+
     res.setHeader('Cache-Control', 'public, s-maxage=1, stale-while-revalidate=9');
 
     const subscriptions = await prisma.subscription.findMany({

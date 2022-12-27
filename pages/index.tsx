@@ -29,7 +29,7 @@ export default function Home({ tiers, plugins }: InferGetServerSidePropsType<typ
                 <meta name="description" content="An app used to learn stripe usage" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-            <div className="flex flex-col p-4 gap-4 items-center">
+            <div className="flex flex-col p-4 gap-4">
                 <div className="w-fit grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-center">
                     {tiers.map((tier, index) => {
                         return (
@@ -66,11 +66,13 @@ export default function Home({ tiers, plugins }: InferGetServerSidePropsType<typ
                     }}
                 />
                 <div className="flex flex-col gap-2">
+                    <h2 className="text-xl font-medium">Plugins</h2>
                     {plugins.map((plugin, index) => {
                         return (
-                            <div className="flex flex-row gap-2" key={index}>
-                                <h1>{plugin.name}</h1>
-                                <p>${plugin.price}</p>
+                            <div className="flex flex-row gap-2 items-baseline" key={index}>
+                                <h3 className="text-lg font-light">{plugin.name}</h3>
+                                <p className="text-gray-500">${plugin.price}</p>
+                                {plugin.description && <span>{` - ${plugin.description}`}</span>}
                             </div>
                         );
                     })}
@@ -108,6 +110,7 @@ export async function getServerSideProps({ res }: GetServerSidePropsContext) {
             id: true,
             name: true,
             price: true,
+            description: true,
         },
     });
 

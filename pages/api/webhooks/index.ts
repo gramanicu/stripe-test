@@ -1,4 +1,5 @@
 import { STRIPE_WEBHOOK_SECRET } from '@lib/config';
+import { SubscriptionService } from '@lib/services/subscription.service';
 import { stripe } from '@lib/stripe';
 import { buffer } from 'micro';
 import { NextApiRequest, NextApiResponse } from 'next';
@@ -33,23 +34,45 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             case 'customer.subscription.created':
                 {
                     const subscription = event.data.object as Stripe.Subscription;
-                    console.log(`Subscription created: ${subscription.id}`);
+
+                    console.log(`Created subscription for ${subscription.metadata.userId}`);
                 }
                 break;
             case 'customer.subscription.updated':
                 {
                     const subscription = event.data.object as Stripe.Subscription;
-                    console.log(`Subscription updated: ${subscription.id}`);
+
+                    if (subscription.status === 'active' && subscription.metadata.isStored != 'true') {
+                        const new_subscription = await SubscriptionService.create(
+                            subscription.metadata.userId,
+                            JSON.parse(subscription.metadata.plugins),
+                            subscription.id,
+                            JSON.parse(subscription.metadata.subscriptionTemplateIds)
+                        );
+
+                        await stripe.subscriptions.update(subscription.id, {
+                            metadata: {
+                                isStored: 'true',
+                                subscriptionId: new_subscription.id,
+                            },
+                        });
+
+                        console.log(`Updated subscription for ${subscription.metadata.userId}`);
+                    }
                 }
                 break;
             case 'customer.subscription.deleted':
                 {
                     const subscription = event.data.object as Stripe.Subscription;
-                    console.log(`Subscription deleted: ${subscription.id}`);
+
+                    await SubscriptionService.remove(subscription.metadata.subscriptionId);
+
+                    console.log(`Deleted subscription for ${subscription.metadata.userId}`);
                 }
                 break;
-            default:
-                console.log(`Unhandled event type ${event.type}`);
+            default: {
+                // console.log(`Unhandled event type ${event.type}`);
+            }
         }
 
         res.json({ received: true });

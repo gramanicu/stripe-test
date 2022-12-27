@@ -70,6 +70,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
                 price: (product.default_price as Stripe.Price).id,
             };
         }),
+        metadata: {
+            userId: user.id,
+            plugins: JSON.stringify(plugins),
+            subscriptionTemplateIds: JSON.stringify(bundles.map(bundle => bundle.id)),
+        },
         payment_behavior: 'default_incomplete',
         payment_settings: { save_default_payment_method: 'on_subscription', payment_method_types: ['card', 'link'] },
         expand: ['latest_invoice.payment_intent'],

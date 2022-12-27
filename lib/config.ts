@@ -1,5 +1,5 @@
 export const PORT: number = parseInt(process.env.PORT || '3000');
-export const DOMAIN: string = process.env.NEXT_PUBLIC_DOMAIN || `localhost:${PORT}`;
+export const DOMAIN: string = process.env.NEXT_PUBLIC_DOMAIN || `http://localhost:${PORT}`;
 
 export const AUTH_SECRET: string = process.env.AUTH_SECRET || '';
 export const STRIPE_PUBLISHABLE_KEY: string = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';

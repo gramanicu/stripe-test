@@ -1,13 +1,13 @@
 version: '3'
 services:
-  app:
-    container_name: stripe-learning
-    image: stripe-learning
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: deploy
-    env_file:
-      - .env
-    ports:
-      - 3100:3000
+    app:
+        container_name: stripe-learning
+        image: stripe-learning
+        build:
+            context: .
+            dockerfile: Dockerfile
+            target: deploy
+        env_file:
+            - .env
+        ports:
+            - 3100:3000

@@ -12,11 +12,7 @@ import { ReactElement } from 'react';
 
 const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
 
-export default function Checkout({
-    clientSecret,
-    subscriptionId,
-    email,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function Checkout({ clientSecret, email }: InferGetServerSidePropsType<typeof getServerSideProps>) {
     return (
         <Elements
             stripe={stripePromise}
