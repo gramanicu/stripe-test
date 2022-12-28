@@ -10,8 +10,7 @@ async function create(
 ): Promise<Subscription> {
     try {
         let subscription: Subscription;
-        console.log('subscriptionTemplateIds', subscriptionTemplateIds);
-        if (subscriptionTemplateIds && subscriptionTemplateIds.length > 1) {
+        if (subscriptionTemplateIds && subscriptionTemplateIds.length > 0) {
             subscription = await prisma.subscription.create({
                 data: {
                     user: {
