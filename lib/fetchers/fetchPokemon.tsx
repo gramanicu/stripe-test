@@ -1,16 +1,26 @@
-import { Pokemon } from '@prisma/client';
+import { SWRInfiniteKeyLoader } from 'swr/infinite';
 
-export const pokemonFetcher = async (): Promise<Pokemon[]> => {
-    const res = await fetch('api/pokemon/list');
+export const getPokemonKey = (limit: number, search: string): SWRInfiniteKeyLoader => {
+    return (pageIndex, previousPageData) => {
+        if (previousPageData && !previousPageData.pokemon) return null;
 
+        if (pageIndex === 0) return `limit=${limit}&search=${search}`;
+
+        pageIndex += 1;
+
+        return `cursor=${previousPageData.nextCursor}&limit=${limit}&search=${search}`;
+    };
+};
+
+export const pokemonFetcher = async (param: string) => {
+    const res = await fetch(`api/pokemon/list${param ? `?${param}` : ''}`);
     const data = await res.json();
 
     if (!res.ok) {
         throw new Error(data.message);
     }
 
-    const pokemon: Pokemon[] = data.pokemon;
-    return pokemon;
+    return data;
 };
 
 export const pokemonCountFetcher = async (): Promise<number> => {

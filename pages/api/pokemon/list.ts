@@ -20,6 +20,8 @@ export const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(403).json({ message: 'Forbidden' });
     }
 
+    const { cursor, limit, search } = req.query;
+
     try {
         const pokemon = await prisma.pokemon.findMany({
             where: {
@@ -28,7 +30,13 @@ export const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                         id: userId,
                     },
                 },
+                name: {
+                    contains: typeof search === 'string' ? search : undefined,
+                },
             },
+            take: limit ? Number(limit) : undefined,
+            skip: typeof cursor === 'string' ? 1 : undefined,
+            cursor: typeof cursor === 'string' ? { id: cursor } : undefined,
             select: {
                 id: true,
                 name: true,
@@ -37,10 +45,12 @@ export const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         });
 
         if (pokemon.length === 0) {
-            return res.status(404).json({ message: 'No pokemon found' });
+            return res.status(200).json({ message: 'No pokemon found', pokemon: [] });
         }
 
-        return res.status(200).json({ message: 'Pokemon list retrieved', pokemon });
+        return res
+            .status(200)
+            .json({ message: 'Pokemon list retrieved', pokemon, nextCursor: pokemon[pokemon.length - 1].id });
     } catch (err) {
         if (err instanceof PrismaClientKnownRequestError) {
             // https://www.prisma.io/docs/reference/api-reference/error-reference

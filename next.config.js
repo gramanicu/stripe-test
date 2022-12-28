@@ -18,7 +18,7 @@ const generateCsp = () => {
             production ? '' : "'unsafe-eval'"
         } https://js.stripe.com https://maps.googleapis.com;`,
         `font-src https://fonts.gstatic.com 'self' data:;`,
-        `img-src 'self' data:;`,
+        `img-src 'self' raw.githubusercontent.com data:;`,
     ];
 
     return policies.join(' ');

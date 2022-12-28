@@ -1,26 +1,62 @@
 import PokemonCard from '@components/cards/PokemonCard';
 import TextInput from '@components/inputs/TextInput';
 import { DefaultLayout } from '@components/layouts/default.layout';
-import { pokemonCountFetcher, pokemonFetcher } from '@lib/fetchers/fetchPokemon';
+import { getPokemonKey, pokemonCountFetcher, pokemonFetcher } from '@lib/fetchers/fetchPokemon';
 import { privilegesFetcher } from '@lib/fetchers/fetchPrivileges';
 import { capitalizeFirstLetter } from '@lib/helpers';
 import { withSessionSsr } from '@lib/session';
 import { Pokemon } from '@prisma/client';
 import Head from 'next/head';
-import { ReactElement, useState } from 'react';
+import React, { ReactElement, useCallback, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import useSWR, { useSWRConfig } from 'swr';
+import useSWRInfinite from 'swr/infinite';
 
 export default function Shop() {
-    const { data, error, mutate } = useSWR('shop/list', pokemonFetcher);
-    const { mutate: globalMutate } = useSWRConfig();
     const [search, setSearch] = useState('');
+    const getKey = getPokemonKey(25, search);
+    const { data, error, mutate, size, setSize, isValidating } = useSWRInfinite<{ pokemon: Pokemon[] }>(
+        getKey,
+        pokemonFetcher
+    );
+    const { mutate: globalMutate } = useSWRConfig();
     const [isLoading, setIsLoading] = useState(false);
     const { data: privileges } = useSWR('auth/privileges', privilegesFetcher);
-    const { data: pokemon_count } = useSWR(
+    const { data: pokemon_count, mutate: pokemon_count_mutate } = useSWR(
         privileges && privileges.includes('pokémon:view_count') ? 'shop/view_count' : null,
         pokemonCountFetcher
     );
+
+    const pokemon = data
+        ? data
+              .map(data => {
+                  return data.pokemon;
+              })
+              .flat()
+        : [];
+
+    const observer = useRef<IntersectionObserver>();
+    const lastElementRef = useCallback(
+        (node: HTMLDivElement) => {
+            if (isValidating) return;
+            if (error) return;
+
+            if (observer.current) observer.current.disconnect();
+            observer.current = new IntersectionObserver(entries => {
+                if (entries[0].isIntersecting) {
+                    loadNewPage();
+                }
+            });
+
+            if (node) observer.current.observe(node);
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [error, isValidating]
+    );
+
+    const loadNewPage = () => {
+        setSize(size + 1);
+    };
 
     if (error) {
         toast.error(error.message);
@@ -67,15 +103,12 @@ export default function Shop() {
         if (res.ok) {
             toast.success(`Added a page of pokémon to the database!`);
             mutate();
+            pokemon_count_mutate();
         } else {
             toast.error(`Failed to add a page of pokémon to the database\nReason: ${data.message}`);
         }
 
         setIsLoading(false);
-    };
-
-    const filterPokemon = (pokemonArr: Pokemon[], search: string) => {
-        return pokemonArr.filter(pokemon => pokemon.name.toLowerCase().includes(search.toLowerCase()));
     };
 
     return (
@@ -89,7 +122,7 @@ export default function Shop() {
                 <TextInput text={search} onChange={setSearch} placeholder="Search for a pokemon..." />
                 <div className="flex flex-row w-full justify-between">
                     <span className="text-md font-bold text-gray-500">
-                        {data ? `${filterPokemon(data, search).length} results` : 'No results'}
+                        {pokemon ? `${pokemon.length} results` : 'No results'}
                         {pokemon_count ? ` / ${pokemon_count} pokémon` : ''}
                     </span>
                     {privileges && privileges.includes('pokémon:add-page') && (
@@ -103,23 +136,43 @@ export default function Shop() {
                     )}
                 </div>
                 <div className="w-full grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 flex-col gap-4">
-                    {data ? (
-                        filterPokemon(data, search).length > 0 ? (
-                            filterPokemon(data, search).map((pokemon, index) => (
-                                <div className="w-full" key={pokemon.id}>
-                                    <PokemonCard
-                                        priority={index < 10}
-                                        buttonText="Add to inventory"
-                                        disabled={isLoading || !privileges || !privileges.includes('pokémon:owned:add')}
-                                        name={pokemon.name}
-                                        url={pokemon.url}
-                                        onClick={async () => {
-                                            if (isLoading) return;
-                                            addPokemonToInventory(pokemon);
-                                        }}
-                                    />
-                                </div>
-                            ))
+                    {pokemon ? (
+                        pokemon.length > 0 ? (
+                            pokemon.map((pokemon_elem, index) =>
+                                index === pokemon.length - 1 ? (
+                                    <div className="w-full" key={pokemon_elem.id} ref={lastElementRef}>
+                                        <PokemonCard
+                                            priority={index < 10}
+                                            buttonText="Add to inventory"
+                                            disabled={
+                                                isLoading || !privileges || !privileges.includes('pokémon:owned:add')
+                                            }
+                                            name={pokemon_elem.name}
+                                            url={pokemon_elem.url}
+                                            onClick={async () => {
+                                                if (isLoading) return;
+                                                addPokemonToInventory(pokemon_elem);
+                                            }}
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="w-full" key={pokemon_elem.id}>
+                                        <PokemonCard
+                                            priority={index < 10}
+                                            buttonText="Add to inventory"
+                                            disabled={
+                                                isLoading || !privileges || !privileges.includes('pokémon:owned:add')
+                                            }
+                                            name={pokemon_elem.name}
+                                            url={pokemon_elem.url}
+                                            onClick={async () => {
+                                                if (isLoading) return;
+                                                addPokemonToInventory(pokemon_elem);
+                                            }}
+                                        />
+                                    </div>
+                                )
+                            )
                         ) : (
                             <div className="min-w-full sm:min-w-[128px]">No results</div>
                         )

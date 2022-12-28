@@ -25,6 +25,7 @@ export default function PokemonCard({
             <div className="relative aspect-square w-full px-2 py-1">
                 <Image
                     priority={priority}
+                    unoptimized={true}
                     sizes="(max-width: 640px) 196px, 128px"
                     className="relative"
                     alt={name}
