@@ -44,10 +44,13 @@ export default function Home({ tiers, plugins }: InferGetServerSidePropsType<typ
                                     })}
                                     onClick={() => {
                                         clearCart();
-                                        addStoreItem({
-                                            itemId: tier.id,
-                                            type: 'BUNDLE',
-                                        });
+
+                                        if (!tier.isOwned) {
+                                            addStoreItem({
+                                                itemId: tier.id,
+                                                type: 'BUNDLE',
+                                            });
+                                        }
 
                                         if (!email) setIsModalOpen(true);
                                         else router.push('/cart/items');

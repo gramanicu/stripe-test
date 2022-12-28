@@ -1,7 +1,9 @@
 import { ArrowLeftOnRectangleIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/solid';
+import { privilegesFetcher } from '@lib/fetchers/fetchPrivileges';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { SessionInfo, useSessionStore } from 'stores/session.store';
+import useSWR from 'swr';
 
 import AuthModal from './AuthModal';
 
@@ -11,10 +13,12 @@ export default function AuthButton() {
 
     const updateEmail = useSessionStore(state => state.updateEmail);
     const stored_session = useSessionStore(state => state.session);
+    const { mutate } = useSWR(stored_session.email !== '' ? 'auth/privileges' : null, privilegesFetcher);
 
     useEffect(() => {
+        mutate();
         setSession(stored_session);
-    }, [stored_session]);
+    }, [mutate, stored_session]);
 
     const handleSignout = async () => {
         const res = await fetch('/api/auth/signout', {
@@ -30,6 +34,8 @@ export default function AuthButton() {
         updateEmail('');
 
         toast.success('Signed out');
+        mutate();
+        window.location.reload();
     };
 
     return (

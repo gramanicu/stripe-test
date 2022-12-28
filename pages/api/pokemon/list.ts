@@ -21,7 +21,20 @@ export const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     try {
-        const pokemon = await prisma.pokemon.findMany();
+        const pokemon = await prisma.pokemon.findMany({
+            where: {
+                owners: {
+                    none: {
+                        id: userId,
+                    },
+                },
+            },
+            select: {
+                id: true,
+                name: true,
+                url: true,
+            },
+        });
 
         if (pokemon.length === 0) {
             return res.status(404).json({ message: 'No pokemon found' });

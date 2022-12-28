@@ -18,6 +18,7 @@ export default function CartItemsPage({ tiers, plugins }: InferGetServerSideProp
     const addStoreItem = useCartStore(state => state.addCartItem);
     const removeStoreItem = useCartStore(state => state.removeCartItem);
     const clearBundles = useCartStore(state => state.clearBundles);
+    const clearCart = useCartStore(state => state.clearCart);
     const storedCart = useCartStore(state => state.cartItems);
 
     type SelectablePluginType = typeof plugins[0] & { isSelected: boolean; preselected: boolean };
@@ -25,6 +26,36 @@ export default function CartItemsPage({ tiers, plugins }: InferGetServerSideProp
     const [selectablePlugins, setSelectablePlugins] = useState<SelectablePluginType[]>([]);
     const [selected, setSelected] = useState('');
     const router = useRouter();
+
+    const isValidCart = (): boolean => {
+        if (cart.length === 0) {
+            toast.error('You need to select at least one item');
+            return false;
+        }
+
+        let isInvalid = false;
+
+        cart.forEach(item => {
+            if (item.type === 'BUNDLE') {
+                const tier = tiers.find(t => t.id === item.itemId);
+                if (!tier) {
+                    isInvalid = true;
+                }
+            } else {
+                const plugin = plugins.find(p => p.id === item.itemId);
+                if (!plugin) {
+                    isInvalid = true;
+                }
+            }
+        });
+
+        if (isInvalid) {
+            toast.error('Invalid plugin or tier selected');
+            return false;
+        }
+
+        return true;
+    };
 
     useEffect(() => {
         setCart(storedCart);
@@ -142,27 +173,38 @@ export default function CartItemsPage({ tiers, plugins }: InferGetServerSideProp
                         </ul>
                     </div>
                     <div className="border-t border-gray-500 p-2 flex flex-row justify-between items-center">
-                        <span>
-                            {`Cart total: $${cart.reduce((acc, item) => {
-                                if (item.type === 'BUNDLE') {
-                                    const tier: typeof tiers[0] | undefined = tiers.find(t => t.id === item.itemId);
-                                    if (tier) {
-                                        return acc + tier.price;
+                        <div className="flex flex-row gap-2 items-center">
+                            <span>
+                                {`Cart total: $${cart.reduce((acc, item) => {
+                                    if (item.type === 'BUNDLE') {
+                                        const tier: typeof tiers[0] | undefined = tiers.find(t => t.id === item.itemId);
+                                        if (tier) {
+                                            return acc + tier.price;
+                                        }
                                     }
-                                }
-                                if (item.type === 'PLUGIN') {
-                                    const plugin = plugins.find(p => p.id === item.itemId);
-                                    if (plugin) {
-                                        return acc + plugin.price;
+                                    if (item.type === 'PLUGIN') {
+                                        const plugin = plugins.find(p => p.id === item.itemId);
+                                        if (plugin) {
+                                            return acc + plugin.price;
+                                        }
                                     }
-                                }
-                                return acc;
-                            }, 0)}`}
-                        </span>
+                                    return acc;
+                                }, 0)}`}
+                            </span>
+                            <button
+                                className="border-white text-white border rounded-lg px-2 py-1"
+                                onClick={() => {
+                                    clearCart();
+                                }}>
+                                Clear cart
+                            </button>
+                        </div>
                         <SimpleButton
                             text="Checkout"
                             disabled={false}
                             onClick={async () => {
+                                if (!isValidCart()) return;
+
                                 const res = await fetch('/api/shop/checkout', {
                                     method: 'POST',
                                     headers: {

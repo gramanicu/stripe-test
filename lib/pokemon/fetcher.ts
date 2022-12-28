@@ -14,9 +14,14 @@ export const fetchPokemon = async (count: number, offset: number): Promise<Fetch
     }
 
     const json = await response.json();
-    return json.results.map((pokemon: { id: string; name: string }) => ({
-        id: pokemon.id,
-        name: pokemon.name,
-        url: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`,
-    }));
+
+    return json.results.map((pokemon: { url: string; name: string }) => {
+        const split = pokemon.url.split('/');
+        const id = split[split.length - 2];
+
+        return {
+            name: pokemon.name,
+            url: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`,
+        };
+    });
 };

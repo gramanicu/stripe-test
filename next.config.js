@@ -57,6 +57,14 @@ const nextConfig = {
     swcMinify: true,
     productionBrowserSourceMaps: true,
     output: 'standalone',
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'raw.githubusercontent.com',
+            },
+        ],
+    },
 
     i18n,
     async headers() {

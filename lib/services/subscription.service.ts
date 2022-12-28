@@ -9,24 +9,41 @@ async function create(
     subscriptionTemplateIds?: string[]
 ): Promise<Subscription> {
     try {
-        const subscription = await prisma.subscription.create({
-            data: {
-                user: {
-                    connect: {
-                        id: userId,
+        let subscription: Subscription;
+        if (subscriptionTemplateIds && subscriptionTemplateIds.length > 1) {
+            subscription = await prisma.subscription.create({
+                data: {
+                    user: {
+                        connect: {
+                            id: userId,
+                        },
+                    },
+                    plugins: {
+                        connect: pluginIds.map(id => ({ id })),
+                    },
+                    stripeSubscriptionId,
+                    subscriptionTemplate: subscriptionTemplateIds && {
+                        connect: {
+                            id: subscriptionTemplateIds[0],
+                        },
                     },
                 },
-                plugins: {
-                    connect: pluginIds.map(id => ({ id })),
-                },
-                stripeSubscriptionId,
-                subscriptionTemplate: subscriptionTemplateIds && {
-                    connect: {
-                        id: subscriptionTemplateIds[0],
+            });
+        } else {
+            subscription = await prisma.subscription.create({
+                data: {
+                    user: {
+                        connect: {
+                            id: userId,
+                        },
                     },
+                    plugins: {
+                        connect: pluginIds.map(id => ({ id })),
+                    },
+                    stripeSubscriptionId,
                 },
-            },
-        });
+            });
+        }
 
         if (!subscription) {
             throw new Error('Subscription could not be created');

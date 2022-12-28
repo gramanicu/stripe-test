@@ -16,22 +16,14 @@ export const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     const userId = req.session.userId;
 
-    if (!(await check_permissions(userId, ['pokémon:list']))) {
+    if (!(await check_permissions(userId, ['pokémon:view_count']))) {
         return res.status(403).json({ message: 'Forbidden' });
     }
 
     try {
-        const pokemon = await prisma.pokemon.findUnique({
-            where: {
-                id: req.query.id as string,
-            },
-        });
+        const count = await prisma.pokemon.count();
 
-        if (!pokemon) {
-            return res.status(404).json({ message: 'Pokemon not found' });
-        }
-
-        res.status(200).json({ pokemon, message: 'Pokemon retrieved' });
+        res.status(200).json({ count, message: 'Pokemon count retrieved' });
     } catch (err) {
         if (err instanceof PrismaClientKnownRequestError) {
             // https://www.prisma.io/docs/reference/api-reference/error-reference

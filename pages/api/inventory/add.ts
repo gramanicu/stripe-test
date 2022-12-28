@@ -20,11 +20,15 @@ export const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     const userId = req.session.userId;
 
-    if (!(await check_permissions(userId, ['pokémon:add-page']))) {
+    if (!(await check_permissions(userId, ['pokémon:owned:add']))) {
         return res.status(403).json({ message: 'Forbidden' });
     }
 
     const { pokemonId } = req.body as RequestBody;
+
+    if (!pokemonId) {
+        return res.status(400).json({ message: 'Missing pokemonId' });
+    }
 
     try {
         const user = await prisma.user.update({
@@ -61,10 +65,12 @@ export const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 case 'P2016':
                     return res.status(404).json({ message: 'User not found' });
                 default:
+                    console.error(err);
                     return res.status(500).json({ message: 'Internal server error' });
             }
         }
 
+        console.error(err);
         return res.status(500).json({ message: 'Internal server error' });
     }
 };
